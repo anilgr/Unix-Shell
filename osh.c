@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <stdlib.h>
+#include <string.h>
 #include "osh.h"
 #include "parser.h"
 
@@ -17,10 +18,11 @@ int main(void)
 
     // get user input
     char *command = malloc(MAX_LINE * sizeof(char));
+    char *prevCommand = malloc(MAX_LINE * sizeof(char));
 
     while (should_run)
     {
-        //show prompt
+        // show prompt
         printf("osh>");
         fflush(stdout);
 
@@ -30,16 +32,29 @@ int main(void)
         // parse user input
         argsCount = parseCommand(command, args);
 
+        // check if the command is history command and run prev command if yes.
+        if (strcmp(args[0], "!!") == 0) {
+            strcpy(command, prevCommand);
+            argsCount = parseCommand(command, args);
+        } else {
+            strcpy(prevCommand, command);
+        }
+
         pid_t pid;
-        pid = fork();
+        pid = fork();// create a new child process.
 
         if (pid == 0)
         {
-            execvp(args[0], args);
+            execvp(args[0], args); // run the command in child process.
         }
         else if (pid > 0)
         {
-            wait(NULL);
+            wait(NULL); // waits for the child process to complete
+        } else {
+            // error creating the child process.
+            printf("\n%s\n", "Failed to create child process.");
+            fprintf(stderr, "Fork failed.");
+            return 1;
         }
     }
 
