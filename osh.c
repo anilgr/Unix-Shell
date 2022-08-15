@@ -4,12 +4,12 @@
 #include <string.h>
 #include "osh.h"
 #include "parser.h"
+#include "command.h"
 
 int main(void)
 {
-    string args[MAX_LINE / 2 + 1]; /* command line arguments */
-    int should_run = 1;
-    int argsCount; /* flag to determine when to exit program */
+    //string args[MAX_LINE / 2 + 1]; /* command line arguments */
+    int should_run = 1;/* flag to determine when to exit program */
     /**
      * After reading user input, the steps are:
      * (1) fork a child process using fork()
@@ -17,8 +17,9 @@ int main(void)
      * (3) parent will invoke wait() unless command included & */
 
     // get user input
-    char *command = malloc(MAX_LINE * sizeof(char));
-    char *prevCommand = malloc(MAX_LINE * sizeof(char));
+    char *inputStr = malloc(MAX_LINE * sizeof(char));
+    char *previnputStr = malloc(MAX_LINE * sizeof(char));
+    Command* cmd = malloc(sizeof(Command));
 
     while (should_run)
     {
@@ -27,17 +28,17 @@ int main(void)
         fflush(stdout);
 
         // read input
-        scanf(" %[^\n]", command);
+        scanf(" %[^\n]", inputStr);
 
         // parse user input
-        argsCount = parseCommand(command, args);
+        parseCommand(inputStr, cmd);
 
         // check if the command is history command and run prev command if yes.
-        if (strcmp(args[0], "!!") == 0) {
-            strcpy(command, prevCommand);
-            argsCount = parseCommand(command, args);
+        if (strcmp(cmd->args[0], "!!") == 0) {
+            strcpy(inputStr, previnputStr);
+            parseCommand(inputStr, cmd);
         } else {
-            strcpy(prevCommand, command);
+            strcpy(previnputStr, inputStr);
         }
 
         pid_t pid;
@@ -45,7 +46,7 @@ int main(void)
 
         if (pid == 0)
         {
-            execvp(args[0], args); // run the command in child process.
+            execvp(cmd->args[0], cmd->args); // run the command in child process.
         }
         else if (pid > 0)
         {
@@ -57,6 +58,11 @@ int main(void)
             return 1;
         }
     }
+
+    free(inputStr);
+    free(previnputStr);
+    free(cmd);
+
 
     return 0;
 }

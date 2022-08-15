@@ -1,3 +1,4 @@
 #pragma once
 #include "osh.h"
-int parseCommand(char *command, string args[]);
+#include "command.h"
+int parseCommand(char *command, Command* cmd);
