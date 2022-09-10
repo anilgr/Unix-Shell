@@ -40,6 +40,28 @@ int parseCommand(char *commandStr, Command *cmd)
             break;
         }
 
+        if (c == '<'){
+            printf("\n output redirection.\n");
+
+            i++;
+            int k = 0;
+            for (;i < strlen(commandStr) && k < MAX_FILE_NAME_LENGTH; i++) {
+                c = commandStr[i];
+                if (c != ' ' )
+                {
+                    cmd->fileName[k] = c;
+                    k++;
+                }
+            }
+            cmd->fileName[k] = '\0';
+
+            cmd->operator = INPUT_REDIRECTION;
+
+            printf("Debug: %s", cmd->fileName);
+
+            break;
+        }
+
         int argIndex = -1;
         for (; c != ' ' && i < strlen(commandStr); i++)
         {
